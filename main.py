@@ -19,7 +19,7 @@ def main():
         dens = data[:, 1]
         cheby_c.append(chebyshev.chebfit(freq, dens, deg=5))
     cheby_c = np.array(cheby_c)
-    np.save('data/data_cheby_numpy/cheby_5.npy', data)
+    np.save('data/data_cheby_numpy/cheby_5.npy', cheby_c)
     
     return
     plt.figure(figsize=(10, 5))
