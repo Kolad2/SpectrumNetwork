@@ -17,11 +17,11 @@ def main():
         freq = data[:, 0]
         freq = 2*(freq - freq.min())/(freq.max() - freq.min())-1
         dens = data[:, 1]
-        cheby_c.append(chebyshev.chebfit(freq, dens, deg=5))
+        cheby_c.append(chebyshev.chebfit(freq, dens, deg=16))
     cheby_c = np.array(cheby_c)
-    np.save('data/data_cheby_numpy/cheby_5.npy', cheby_c)
+    np.save('data/data_cheby_numpy/cheby_16.npy', cheby_c)
     
-    return
+
     plt.figure(figsize=(10, 5))
     for data, c in zip(datas, cheby_c):
         freq = data[:, 0]
