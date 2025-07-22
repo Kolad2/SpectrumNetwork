@@ -27,12 +27,18 @@ def main():
         "hidden_size": 30
     }
     dates = [20190706, 20201024, 20221112, 20231118, 20231216]
-    date = dates[3]
+    
     unique_dates = params["Date"].unique()
     
+    test_dates = [20190706, 20231216]
+    train_idx = params.index[~params["Date"].isin(test_dates)]
+    test_idx = params.index[params["Date"].isin(test_dates)]
+    
     # train_idx, test_idx = train_test_split(np.arange(len(data)), test_size=0.3, random_state=42)
-    train_idx = params.index[params["Date"] != date]
-    test_idx = params.index[params["Date"] == date]
+    
+    # date = dates[3]
+    # train_idx = params.index[params["Date"] != date]
+    # test_idx = params.index[params["Date"] == date]
     
     data_train = data[train_idx]
     params_train = params.iloc[train_idx].copy()
@@ -40,12 +46,14 @@ def main():
     data_test = data[test_idx]
     params_test = params.iloc[test_idx].copy()
     
+    model_name = "_".join(str(date) for date in test_dates)
+    
     trainer = MLPTrainer(data_train, params_train, data_test, params_test, config)
     trainer.train()
-    trainer.save("./saved_models/model_" + str(date) + ".pth")
-    #trainer.load("./saved_models/model_" + str(date) + ".pth")
+    trainer.save("./saved_models/model_" + model_name + ".pth")
+    # trainer.load("./saved_models/model_" + model_name + ".pth")
     trainer.test_evaluate()
-    trainer.test_save("./outputs/data_test_" + str(date) + ".csv")
+    trainer.test_save("./outputs/data_test_" + model_name + ".csv")
     
     vizualize(trainer.params_test)
     
