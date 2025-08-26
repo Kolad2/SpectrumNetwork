@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 from numpy.polynomial import chebyshev
 
+
 def main():
     data_path = Path('data/data_ascii')
     params = pd.read_csv('data/data_ascii/parameters.csv')

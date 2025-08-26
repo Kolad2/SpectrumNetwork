@@ -30,15 +30,16 @@ def main():
     
     unique_dates = params["Date"].unique()
     
-    test_dates = [20190706, 20231216]
-    train_idx = params.index[~params["Date"].isin(test_dates)]
-    test_idx = params.index[params["Date"].isin(test_dates)]
+    # test_dates = [20190706, 20231216]
+    # train_idx = params.index[~params["Date"].isin(test_dates)]
+    # test_idx = params.index[params["Date"].isin(test_dates)]
     
-    # train_idx, test_idx = train_test_split(np.arange(len(data)), test_size=0.3, random_state=42)
+    date_to_exclude = 20201024
+    include_idx = params.index[params["Date"] != date_to_exclude]
+    data = data[include_idx]
+    params = params.iloc[include_idx].copy()
     
-    # date = dates[3]
-    # train_idx = params.index[params["Date"] != date]
-    # test_idx = params.index[params["Date"] == date]
+    train_idx, test_idx = train_test_split(np.arange(len(data)), test_size=0.3, random_state=42)
     
     data_train = data[train_idx]
     params_train = params.iloc[train_idx].copy()
@@ -46,7 +47,8 @@ def main():
     data_test = data[test_idx]
     params_test = params.iloc[test_idx].copy()
     
-    model_name = "_".join(str(date) for date in test_dates)
+    #model_name = "_".join(str(date) for date in test_dates)
+    model_name = "_ex_20201024"
     
     trainer = MLPTrainer(data_train, params_train, data_test, params_test, config)
     trainer.train()

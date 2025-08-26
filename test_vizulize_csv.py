@@ -6,9 +6,9 @@ from numpy.polynomial import chebyshev
 
 
 def main():
-    dates = [20190706, 20201024, 20221112, 20231118, 20231216]
-    date = dates[4]
-    params = pd.read_csv("outputs/data_test_" + str(date) + ".csv")
+    dates = [20190706, 20221112, 20231118, 20231216]
+    date = dates[3]
+    params = pd.read_csv("outputs/data_test__ex_20201024.csv")
     
     Mo = params["Mo"].to_numpy()
     Es = params["Es"].to_numpy()
@@ -23,18 +23,18 @@ def main():
     
     # Гистограмма для Mo_error
     ax1.hist(Mo_error, bins=40, color='blue', alpha=0.7)
-    ax1.set_title("$M_o$" + " " + str(date))
+    ax1.set_title("$M_o$")
     ax1.set_xlabel('Относительная ошибка')
     ax1.set_ylabel('Частота')
     
     # Гистограмма для Es_error
     ax2.hist(Es_error, bins=40, color='red', alpha=0.7)
-    ax2.set_title("$E_s$" + " " + str(date))
+    ax2.set_title("$E_s$")
     ax2.set_xlabel('Относительная ошибка')
     ax2.set_ylabel('Частота')
     
     plt.tight_layout()
-    fig.savefig("./outputs/pictures/" + str(date) + ".png", dpi=300, bbox_inches='tight')
+    fig.savefig("./outputs/pictures/" + str("gist") + ".png", dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':
