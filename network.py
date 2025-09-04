@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 import pandas as pd
+import matplotlib as mpl
 from matplotlib.lines import lineStyles
 from numpy.polynomial import chebyshev
 from typing import Optional
@@ -22,7 +23,7 @@ def main():
     config = {
         "input_size": 7,
         "learning_rate": 0.0001,
-        "num_epochs": 5000,
+        "num_epochs": 1000,
         "batch_size": 32,
         "hidden_size": 30
     }
@@ -70,6 +71,8 @@ class MLPTrainer:
         self.transform = Transforms()
         self.transform.configurate(self.data_train, self.params_train)
         self.model: Optional[MLP] = None
+        self.optimizer: Optional[MSELoss] = None
+        self.criterion = nn.MSELoss()
     
     def train(self):
         x_train = self.transform.get_input_network(self.data_train, self.params_train)
@@ -77,7 +80,26 @@ class MLPTrainer:
         self.model = MLP(x_train.size()[1], self.config["hidden_size"], 2)
         dataset = TensorDataset(x_train, y_train)
         dataloader = DataLoader(dataset, batch_size=self.config["batch_size"], shuffle=True)
-        train(self.model, dataloader, self.config["num_epochs"], self.config["learning_rate"])
+        self._train_process(dataloader, self.config["num_epochs"], self.config["learning_rate"])
+    
+    def _train_process(self, dataloader, num_epochs, learning_rate):
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        losses = np.empty((num_epochs, ), dtype=float)
+        for epoch in range(num_epochs):
+            for batch_x, batch_y in dataloader:
+                losses[epoch] = self._train_step(batch_x, batch_y)
+            if (epoch + 1) % 10 == 0:
+                print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {float(losses[epoch]):.4f}')
+        self._train_visulize(losses)
+    
+    def _train_step(self, batch_x, batch_y):
+        outputs = self.model(batch_x)
+        loss = self.criterion(outputs, batch_y)
+        # Обратный проход и оптимизация
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
     
     def test_evaluate(self):
         test_x = self.transform.get_input_network(self.data_test, self.params_test)
@@ -85,6 +107,28 @@ class MLPTrainer:
         test_y = self.transform.output_network_to_numpy(test_y)
         self.params_test["test_Mo"] = test_y[:, 0]
         self.params_test["test_Es"] = test_y[:, 1]
+    
+    @classmethod
+    def _train_visulize(self, losses, smooth_size=10):
+        font_path = Path(".") / "assets" / "timesnewromanpsmt.ttf"
+        custom_font = mpl.font_manager.FontProperties(fname=font_path, size=20)
+        
+        fig = plt.figure(figsize=(8, 5))
+        axs = [fig.add_subplot(1, 1, 1)]
+        smoothed = np.convolve(losses, np.ones(smooth_size)/smooth_size, mode='valid')
+        axs[0].plot(losses, label='Loss', color="black")
+        axs[0].plot(smoothed, label='Smoothed loss', color="blue")
+        min_i = np.argmin(losses)
+        axs[0].plot(min_i, losses[min_i],'o', color="red", label="Minimal loss")
+        axs[0].set_xlabel('Epoch', fontproperties=custom_font)
+        axs[0].set_ylabel('Loss', fontproperties=custom_font)
+        axs[0].set_title('Training Loss', fontproperties=custom_font)
+        axs[0].grid(True)
+        axs[0].legend(prop=custom_font)
+        axs[0].set_xlim([1, len(losses)])
+        for label in axs[0].get_xticklabels() + axs[0].get_yticklabels():
+            label.set_fontproperties(custom_font)
+        fig.savefig("./outputs/pictures/" + str("training") + ".png", dpi=300, bbox_inches='tight')
     
     def test_save(self, path):
         self.params_test.to_csv(path, index=False, encoding='utf-8')
@@ -124,21 +168,6 @@ def vizualize(params_test):
     axs[1].set_ylabel("Модельные значения, $E_s^*$")
     plt.show()
 
-
-def train(model, dataloader, num_epochs, learning_rate):
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    criterion = nn.MSELoss()  # для регрессии
-
-    for epoch in range(num_epochs):
-        for batch_x, batch_y in dataloader:
-            outputs = model(batch_x)
-            loss = criterion(outputs, batch_y)
-            # Обратный проход и оптимизация
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        if (epoch + 1) % 10 == 0:
-            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
 
 class Transforms:
